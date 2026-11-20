@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lia AI — Admin Panel</title>
+<style>
+  :root {
+    --bg:       #0A0918;
+    --bg2:      #100F1C;
+    --bg3:      #1A1929;
+    --marigold: #FFB547;
+    --lagoon:   #3FE0D0;
+    --purple:   #7C6FCD;
+    --text:     #EAE8FF;
+    --muted:    #A7A0CC;
+    --red:      #FF5F6D;
+    --green:    #3FE0A0;
+    --orange:   #FFA040;
+    --radius:   12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
+
+  /* ── Layout ── */
+  header { background: var(--bg2); border-bottom: 1px solid var(--bg3); padding: 16px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  header .logo { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--marigold), var(--purple)); flex-shrink: 0; }
+  header h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+  header h1 span { color: var(--marigold); }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+  /* ── Stat cards ── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--bg3); border-radius: var(--radius); padding: 16px; text-align: center; }
+  .stat-card .num { font-size: 32px; font-weight: 800; }
+  .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .stat-card.total  .num { color: var(--lagoon); }
+  .stat-card.active .num { color: var(--green); }
+  .stat-card.blocked .num { color: var(--red); }
+  .stat-card.expired .num { color: var(--orange); }
+
+  /* ── Panel / Card ── */
+  .card { background: var(--bg2); border: 1px solid var(--bg3); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+  .card h2 { font-size: 15px; font-weight: 700; color: var(--marigold); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── Form ── */
+  .form-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  select, input[type=number], input[type=text] {
+    background: var(--bg3); border: 1px solid #2D2B45; color: var(--text);
+    border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--marigold); }
+  .btn { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: opacity .15s; }
+  .btn:hover { opacity: .85; }
+  .btn-primary  { background: var(--marigold); color: #0A0918; }
+  .btn-danger   { background: var(--red);      color: #fff; }
+  .btn-success  { background: var(--green);    color: #0A0918; }
+  .btn-ghost    { background: var(--bg3);      color: var(--text); border: 1px solid #2D2B45; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+  /* ── Search bar ── */
+  .search-row { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; }
+  .search-row input { flex: 1; }
+  .search-row .count { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--bg3); white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--bg3); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .key-cell { font-family: monospace; cursor: pointer; color: var(--lagoon); letter-spacing: .03em; }
+  .key-cell:hover { color: var(--marigold); }
+
+  /* ── Badges ── */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .badge-active  { background: rgba(63,224,160,.15); color: var(--green); border: 1px solid var(--green); }
+  .badge-blocked { background: rgba(255,95,109,.15);  color: var(--red);   border: 1px solid var(--red); }
+  .badge-expired { background: rgba(255,160,64,.15);  color: var(--orange);border: 1px solid var(--orange); }
+  .badge-inactive{ background: rgba(167,160,204,.1);  color: var(--muted); border: 1px solid #2D2B45; }
+
+  /* ── Action buttons in table ── */
+  .actions { display: flex; gap: 6px; }
+
+  /* ── Toast ── */
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--bg3);
+    border: 1px solid var(--marigold); color: var(--text); padding: 10px 20px; border-radius: 999px;
+    font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 9999; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+
+  /* ── New keys popup ── */
+  #newKeyBox { background: var(--bg3); border: 1px solid var(--lagoon); border-radius: var(--radius);
+    padding: 16px; margin-top: 12px; display: none; }
+  #newKeyBox h3 { color: var(--lagoon); font-size: 13px; margin-bottom: 8px; }
+  #newKeyList { font-family: monospace; font-size: 13px; line-height: 2; color: var(--text); }
+  #newKeyList span { cursor: pointer; display: block; padding: 2px 4px; border-radius: 4px; }
+  #newKeyList span:hover { background: rgba(63,224,208,.1); }
+
+  /* ── Empty ── */
+  .empty { text-align: center; padding: 48px 0; color: var(--muted); font-size: 15px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    header h1 { font-size: 15px; }
+    td, th { padding: 8px 8px; }
+    .btn { padding: 7px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"></div>
+  <h1>Lia AI &nbsp;<span>Admin</span></h1>
+  <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+    <span id="refreshTimer" style="font-size:12px;color:var(--muted)"></span>
+    <button class="btn btn-ghost btn-sm" onclick="loadAll()">↻ Refresh</button>
+    <a href="/admin/export" class="btn btn-ghost btn-sm">⬇ Export CSV</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card total">  <div class="num" id="sTotal">—</div>  <div class="lbl">Total Keys</div></div>
+    <div class="stat-card active"> <div class="num" id="sActive">—</div> <div class="lbl">Active</div></div>
+    <div class="stat-card blocked"><div class="num" id="sBlocked">—</div><div class="lbl">Blocked</div></div>
+    <div class="stat-card expired"><div class="num" id="sExpired">—</div><div class="lbl">Expired</div></div>
+  </div>
+
+  <!-- Generate Key -->
+  <div class="card">
+    <h2>🔑 Generate New Key</h2>
+    <div class="form-row">
+      <div>
+        <label>Plan</label>
+        <select id="gPlan">
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+          <option value="lifetime">Lifetime</option>
+        </select>
+      </div>
+      <div>
+        <label>Expires (days, 0 = never)</label>
+        <input type="number" id="gDays" value="0" min="0" style="width:120px">
+      </div>
+      <div>
+        <label>Count</label>
+        <input type="number" id="gCount" value="1" min="1" max="50" style="width:80px">
+      </div>
+      <button class="btn btn-primary" onclick="generateKeys()">Generate</button>
+    </div>
+    <div id="newKeyBox">
+      <h3>✅ Generated Keys — click to copy</h3>
+      <div id="newKeyList"></div>
+    </div>
+  </div>
+
+  <!-- Keys Table -->
+  <div class="card">
+    <h2>📋 All Keys</h2>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Search by key, plan, device, status…" oninput="filterTable()">
+      <span class="count" id="keyCount"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Expires</th>
+            <th>Device</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="keysBody">
+          <tr><td colspan="7"><div class="empty">Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let allKeys = [];
+
+  async function loadAll() {
+    await Promise.all([loadStats(), loadKeys()]);
+  }
+
+  async function loadStats() {
+    const r = await fetch("/api/stats").then(r => r.json()).catch(() => null);
+    if (!r) return;
+    document.getElementById("sTotal").textContent   = r.total;
+    document.getElementById("sActive").textContent  = r.active;
+    document.getElementById("sBlocked").textContent = r.blocked;
+    document.getElementById("sExpired").textContent = r.expired;
+  }
+
+  async function loadKeys() {
+    const keys = await fetch("/api/keys").then(r => r.json()).catch(() => []);
+    allKeys = keys;
+    renderTable(keys);
+  }
+
+  function filterTable() {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    const filtered = q
+      ? allKeys.filter(k =>
+          k.key.toLowerCase().includes(q) ||
+          k.plan.toLowerCase().includes(q) ||
+          (k.device||"").toLowerCase().includes(q) ||
+          k.status.toLowerCase().includes(q))
+      : allKeys;
+    renderTable(filtered);
+  }
+
+  function renderTable(keys) {
+    document.getElementById("keyCount").textContent = keys.length + " key" + (keys.length !== 1 ? "s" : "");
+    const body = document.getElementById("keysBody");
+    if (!keys.length) {
+      body.innerHTML = `<tr><td colspan="7"><div class="empty">No keys found</div></td></tr>`;
+      return;
+    }
+    body.innerHTML = keys.map(k => {
+      const exp = k.expires_at > 0 ? new Date(k.expires_at).toLocaleDateString() : "Never";
+      const created = new Date(k.created_at).toLocaleDateString();
+      const badge = `<span class="badge badge-${k.status}">${k.status}</span>`;
+      let actions = "";
+      if (k.status === "blocked") {
+        actions += `<button class="btn btn-success btn-sm" onclick="doAction('/admin/unblock','${k.key}')">Unblock</button>`;
+      } else {
+        actions += `<button class="btn btn-danger btn-sm" onclick="doAction('/admin/block','${k.key}')">Block</button>`;
+      }
+      actions += `<button class="btn btn-ghost btn-sm" onclick="doAction('/admin/delete','${k.key}',true)">Delete</button>`;
+      return `<tr>
+        <td><span class="key-cell" onclick="copy('${k.key}')" title="Click to copy">${k.key}</span></td>
+        <td>${k.plan}</td>
+        <td>${badge}</td>
+        <td>${exp}</td>
+        <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis">${k.device||"—"}</td>
+        <td>${created}</td>
+        <td><div class="actions">${actions}</div></td>
+      </tr>`;
+    }).join("");
+  }
+
+  async function generateKeys() {
+    const plan  = document.getElementById("gPlan").value;
+    const days  = parseInt(document.getElementById("gDays").value) || 0;
+    const count = parseInt(document.getElementById("gCount").value) || 1;
+    const r = await fetch("/admin/generate", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({plan, expires_days: days, count})
+    }).then(r => r.json()).catch(() => ({ok:false}));
+
+    if (!r.ok) { toast("Error generating keys"); return; }
+
+    const box  = document.getElementById("newKeyBox");
+    const list = document.getElementById("newKeyList");
+    box.style.display = "block";
+    list.innerHTML = r.keys.map(k =>
+      `<span onclick="copy('${k}')" title="Click to copy">🔑 ${k}</span>`
+    ).join("");
+    toast(`${r.keys.length} key(s) generated!`);
+    loadAll();
+  }
+
+  async function doAction(url, key, confirmFirst = false) {
+    if (confirmFirst && !confirm(`Delete key ${key}?`)) return;
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({key})
+    }).then(r => r.json()).catch(() => ({ok:false}));
+    if (r.ok) { toast("Done!"); loadAll(); }
+    else toast("Error: " + (r.error || "unknown"));
+  }
+
+  function copy(text) {
+    navigator.clipboard.writeText(text).then(() => toast("Copied: " + text));
+  }
+
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2500);
+  }
+
+  // Auto-refresh every 30 seconds
+  let countdown = 30;
+  setInterval(() => {
+    countdown--;
+    document.getElementById("refreshTimer").textContent = `Auto-refresh in ${countdown}s`;
+    if (countdown <= 0) { countdown = 30; loadAll(); }
+  }, 1000);
+
+  // Initial load
+  loadAll();
+</script>
+</body>
+</html>

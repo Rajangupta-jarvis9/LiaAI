@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- app_label is overridden by each flavor's resValue in build.gradle.kts -->
+    <string name="app_label">Lia AI</string>
+    <string name="app_tagline">Your Intelligent AI Companion</string>
+    <string name="accessibility_service_description">
+        Lia AI uses accessibility to open apps, read the screen, and perform actions
+        on your behalf — only when you ask it to.
+    </string>
+    <string name="lia_backend_url"></string>
+</resources>

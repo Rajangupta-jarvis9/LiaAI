@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Play flavor: deliberately empty overlay.
+  AccessibilityService, SYSTEM_ALERT_WINDOW and QUERY_ALL_PACKAGES are NOT declared here.
+  Those classes exist only in src/direct; they are replaced by safe stubs in src/play.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+</manifest>

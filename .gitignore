@@ -1,0 +1,21 @@
+# ── Build outputs ────────────────────────────────────────────────────────────
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+
+# ── Android Studio ───────────────────────────────────────────────────────────
+.idea/
+*.iml
+local.properties
+
+# ── SECRETS — never commit these ─────────────────────────────────────────────
+keystore.properties
+*.jks
+*.keystore
+google-services.json
+license-config.json
+
+# ── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store

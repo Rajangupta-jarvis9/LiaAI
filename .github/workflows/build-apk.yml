@@ -1,0 +1,54 @@
+name: Build Lia AI APKs (Direct & Play)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:          # manual trigger from GitHub UI
+
+jobs:
+  build:
+    name: Build Direct & Play APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ───────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Java Setup ─────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      # ── 3. Gradle executable permission ───────────────────────────────────
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # ── 4. Build Direct Debug APK (Full automation & accessibility) ──────
+      - name: Build Direct Debug APK
+        run: ./gradlew assembleDirectDebug --no-daemon --stacktrace
+
+      # ── 5. Build Play Debug APK (Play store safe) ─────────────────────────
+      - name: Build Play Debug APK
+        run: ./gradlew assemblePlayDebug --no-daemon --stacktrace
+
+      # ── 6. Upload Direct APK ──────────────────────────────────────────────
+      - name: Upload Direct Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiaAI-direct-debug
+          path: app/build/outputs/apk/direct/debug/*.apk
+          if-no-files-found: error
+
+      # ── 7. Upload Play APK ────────────────────────────────────────────────
+      - name: Upload Play Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiaAI-play-debug
+          path: app/build/outputs/apk/play/debug/*.apk
+          if-no-files-found: error

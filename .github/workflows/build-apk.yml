@@ -15,18 +15,18 @@ jobs:
     steps:
       # ── 1. Checkout ────────────────────────────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # ── 2. Java 17 ────────────────────────────────────────────────────────
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
       # ── 3. Gradle cache ───────────────────────────────────────────────────
       - name: Cache Gradle packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -107,28 +107,28 @@ jobs:
 
       # ── 8. Upload all APKs as artifacts ───────────────────────────────────
       - name: Upload directDebug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: LiaAI-direct-debug
           path: artifacts/LiaAI-direct-debug.apk
           retention-days: 30
 
       - name: Upload directRelease APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: LiaAI-direct-release
           path: artifacts/LiaAI-direct-release.apk
           retention-days: 30
 
       - name: Upload playDebug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: LiaAI-play-debug
           path: artifacts/LiaAI-play-debug.apk
           retention-days: 30
 
       - name: Upload playRelease APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: LiaAI-play-release
           path: artifacts/LiaAI-play-release.apk

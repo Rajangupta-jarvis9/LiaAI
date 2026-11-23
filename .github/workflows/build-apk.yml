@@ -38,7 +38,21 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      # ── 5. Build unsigned APKs (no keystore needed) ───────────────────────
+      # ── 5. Patch themes.xml — replace Material theme with AppCompat ───────
+      # android:Theme.Material.NoTitleBar causes AAPT linking failure on CI.
+      # Compose apps do not need it; Theme.AppCompat.NoActionBar is correct.
+      - name: Patch themes.xml
+        run: |
+          sed -i 's|android:Theme.Material.NoTitleBar|Theme.AppCompat.NoActionBar|g' \
+            app/src/main/res/values/themes.xml
+          echo "── themes.xml after patch ──"
+          cat app/src/main/res/values/themes.xml
+
+      # ── 6. Remove non-font files from res/font/ ───────────────────────────
+      - name: Clean res/font directory
+        run: find app/src/main/res/font -type f ! \( -name "*.xml" -o -name "*.ttf" -o -name "*.ttc" -o -name "*.otf" \) -delete && echo "Cleaned font dir" || true
+
+      # ── 6. Build unsigned APKs (no keystore needed) ───────────────────────
       # direct = full power flavor, play = Play Store safe flavor
       - name: Build directDebug APK
         run: ./gradlew assembleDirectDebug --no-daemon
